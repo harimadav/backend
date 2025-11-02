@@ -12,10 +12,32 @@ public class Server {
     static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public static void main(String[] args) throws Exception {
+        // ✅ Step 1: Dynamic Port for Render deployment
         int port = 8000;
+        String portEnv = System.getenv("PORT");
+        if (portEnv != null) {
+            port = Integer.parseInt(portEnv);
+        }
+
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Main books endpoint
+        // ✅ Root endpoint to verify Render deployment
+        server.createContext("/", (exchange) -> {
+            addCORS(exchange);
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
+
+            String response = "✅ Java Backend running successfully on port " + port;
+            exchange.getResponseHeaders().add("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(200, response.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        });
+
+        // ✅ Main books endpoint
         server.createContext("/books", (exchange) -> {
             try {
                 addCORS(exchange);
@@ -51,7 +73,7 @@ public class Server {
             }
         });
 
-        // Borrow / Return / Renew
+        // ✅ Borrow / Return / Renew routes
         server.createContext("/books/", (exchange) -> {
             try {
                 addCORS(exchange);
@@ -115,7 +137,7 @@ public class Server {
 
         server.setExecutor(null);
         server.start();
-        System.out.println("✅ Server started at http://localhost:" + port);
+        System.out.println("✅ Server started at port " + port);
     }
 
     // ✅ Add CORS headers for frontend connection
