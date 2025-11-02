@@ -19,7 +19,9 @@ public class Server {
             port = Integer.parseInt(portEnv);
         }
 
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        final int serverPort = port; // ✅ make final copy for lambda use
+
+        HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
 
         // ✅ Root endpoint to verify Render deployment
         server.createContext("/", (exchange) -> {
@@ -29,7 +31,7 @@ public class Server {
                 return;
             }
 
-            String response = "✅ Java Backend running successfully on port " + port;
+            String response = "✅ Java Backend running successfully on port " + serverPort;
             exchange.getResponseHeaders().add("Content-Type", "text/plain");
             exchange.sendResponseHeaders(200, response.length());
             OutputStream os = exchange.getResponseBody();
@@ -137,7 +139,7 @@ public class Server {
 
         server.setExecutor(null);
         server.start();
-        System.out.println("✅ Server started at port " + port);
+        System.out.println("✅ Server started at port " + serverPort);
     }
 
     // ✅ Add CORS headers for frontend connection
